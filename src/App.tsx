@@ -72,9 +72,9 @@ const analyticsData = {
     { type: 'Casual', count: 9, color: '#6366f1' },
   ],
   statusBreakdown: [
-    { status: 'Approved', count: 22, color: '#10b981' },
-    { status: 'Pending', count: 9, color: '#f59e0b' },
-    { status: 'Rejected', count: 7, color: '#ef4444' },
+    { type: 'Approved', count: 22, color: '#10b981' },
+    { type: 'Pending', count: 9, color: '#f59e0b' },
+    { type: 'Rejected', count: 7, color: '#ef4444' },
   ],
 };
 
@@ -121,13 +121,14 @@ function BarChart({ data, color = '#10b981' }: { data: { label: string; value: n
 // ─── DONUT CHART ─────────────────────────────────────────────────────────────
 function DonutChart({ data }: { data: { type: string; count: number; color: string }[] }) {
   const total = data.reduce((s, d) => s + d.count, 0);
-  let cumulative = 0;
-  const segments = data.map(d => {
-    const pct = (d.count / total) * 100;
-    const segment = { ...d, pct, offset: cumulative };
-    cumulative += pct;
-    return segment;
-  });
+  const segments = data.reduce<{ type: string; count: number; color: string; pct: number; offset: number }[]>(
+    (acc, d) => {
+      const pct = (d.count / total) * 100;
+      const offset = acc.length > 0 ? acc[acc.length - 1].offset + acc[acc.length - 1].pct : 0;
+      return [...acc, { ...d, pct, offset }];
+    },
+    []
+  );
   const circumference = 2 * Math.PI * 40;
 
   return (
